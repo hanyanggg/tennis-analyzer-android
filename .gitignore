@@ -12,3 +12,6 @@ local.properties
 
 # Local scratch file kept outside the Android source set.
 /app/VideoAnalysisScreen.kt
+
+# Temporary screenshots used while preparing documentation.
+/docs/images/_*.png
