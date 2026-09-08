@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "task": "tennis_court_14_keypoint_heatmap_detection",
+  "recommended_model": "training/court_keypoints_low_camera_v1/export/court_keypoints_low_camera_v1_fp32.tflite",
+  "optional_validated_model": "training/court_keypoints_low_camera_v1/export/court_keypoints_low_camera_v1_fp16.tflite",
+  "input": {
+    "name_fp32_litert": "serving_default_args_0",
+    "dtype": "float32",
+    "shape": [
+      1,
+      360,
+      640,
+      3
+    ],
+    "layout": "NHWC",
+    "color_order": "RGB",
+    "pixel_range": [
+      0.0,
+      1.0
+    ],
+    "image_requirement": "16:9 frame resized directly to 640x360; no crop or letterbox",
+    "caller_steps": "Convert camera/bitmap pixels to RGB float32 and divide by 255 only.",
+    "normalization_location": "inside_model_wrapper",
+    "normalization": {
+      "formula_per_channel": "normalized = (rgb_0_to_1 - mean) / std",
+      "mean_rgb": [
+        0.48500001430511475,
+        0.4560000002384186,
+        0.4059999883174896
+      ],
+      "std_rgb": [
+        0.2290000021457672,
+        0.2240000069141388,
+        0.22499999403953552
+      ],
+      "warning": "Do not apply ImageNet normalization in Android code; it is embedded in the model."
+    }
+  },
+  "output": {
+    "name_fp32_litert": "serving_default_output_0_output",
+    "dtype": "float32",
+    "shape": [
+      1,
+      90,
+      160,
+      14
+    ],
+    "layout": "NHWC",
+    "value": "unnormalized heatmap logits",
+    "channels": [
+      {
+        "index": 0,
+        "semantic": "far_doubles_left_baseline_corner"
+      },
+      {
+        "index": 1,
+        "semantic": "far_doubles_right_baseline_corner"
+      },
+      {
+        "index": 2,
+        "semantic": "near_doubles_left_baseline_corner"
+      },
+      {
+        "index": 3,
+        "semantic": "near_doubles_right_baseline_corner"
+      },
+      {
+        "index": 4,
+        "semantic": "far_left_singles_baseline_corner"
+      },
+      {
+        "index": 5,
+        "semantic": "near_left_singles_baseline_corner"
+      },
+      {
+        "index": 6,
+        "semantic": "far_right_singles_baseline_corner"
+      },
+      {
+        "index": 7,
+        "semantic": "near_right_singles_baseline_corner"
+      },
+      {
+        "index": 8,
+        "semantic": "far_service_line_left_singles_intersection"
+      },
+      {
+        "index": 9,
+        "semantic": "far_service_line_right_singles_intersection"
+      },
+      {
+        "index": 10,
+        "semantic": "near_service_line_left_singles_intersection"
+      },
+      {
+        "index": 11,
+        "semantic": "near_service_line_right_singles_intersection"
+      },
+      {
+        "index": 12,
+        "semantic": "far_service_line_center_intersection"
+      },
+      {
+        "index": 13,
+        "semantic": "near_service_line_center_intersection"
+      }
+    ],
+    "orientation_terms": "far=top side of canonical broadcast view; near=bottom side"
+  },
+  "decoding": {
+    "argmax": "For each channel c, choose (row,col)=argmax(output[0,:,:,c]).",
+    "cell_center_input_640x360": {
+      "x": "(col + 0.5) * (640 / 160) = (col + 0.5) * 4",
+      "y": "(row + 0.5) * (360 / 90) = (row + 0.5) * 4"
+    },
+    "map_input_to_original_16x9_video": {
+      "x_video": "x_640 * video_width / 640 = (col + 0.5) * video_width / 160",
+      "y_video": "y_360 * video_height / 360 = (row + 0.5) * video_height / 90",
+      "1280x720_special_case": "x=(col+0.5)*8, y=(row+0.5)*8",
+      "warning": "If the app crops or letterboxes, invert that transform before returning video coordinates."
+    },
+    "confidence": {
+      "formula": "sigmoid(max_logit_for_channel) = 1 / (1 + exp(-max_logit))",
+      "meaning": "model peak score, not a calibrated probability of geometric correctness"
+    }
+  },
+  "validation": {
+    "images": 200,
+    "selection": "200 evenly spaced deterministic indices over all 2211 validation records",
+    "fp32_passed": true,
+    "fp16_passed": true
+  },
+  "checkpoint": {
+    "path": "training/court_keypoints_low_camera_v1/best_calibrated.pt",
+    "sha256": "9bcc871f87d741a247421c86ecccd1a91a71d38c37243765a63e28b6d28016ea",
+    "modified_by_export": false
+  }
+}
